@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Path Challenge - Professional Edition</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Start Screen -->
+  <div class="start-container" id="start-screen">
+    <div class="start-content">
+      <div class="game-header">
+        <h1 class="game-title-main">
+          <span class="title-icon">🎯</span>
+          <span class="title-text">Path Challenge</span>
+        </h1>
+        <p class="game-subtitle">Navigate the path from bottom to top</p>
+      </div>
+      
+      <div class="difficulty-selector">
+        <h2 class="selector-title">Choose Difficulty</h2>
+        <div class="difficulty-grid">
+          <button id="normal-btn-start" class="difficulty-card">
+            <div class="card-header">
+              <span class="difficulty-icon">⭐</span>
+              <span class="difficulty-name">Normal</span>
+            </div>
+            <div class="card-details">
+              <span class="grid-size">20 × 20</span>
+              <span class="time-limit">⏱️ 9 seconds</span>
+            </div>
+          </button>
+          
+          <button id="hard-btn-start" class="difficulty-card">
+            <div class="card-header">
+              <span class="difficulty-icon">🔥</span>
+              <span class="difficulty-name">Hard</span>
+            </div>
+            <div class="card-details">
+              <span class="grid-size">30 × 30</span>
+              <span class="time-limit">⏱️ 13 seconds</span>
+            </div>
+          </button>
+          
+          <button id="extreme-btn-start" class="difficulty-card">
+            <div class="card-header">
+              <span class="difficulty-icon">⚡</span>
+              <span class="difficulty-name">Extreme</span>
+            </div>
+            <div class="card-details">
+              <span class="grid-size">40 × 40</span>
+              <span class="time-limit">⏱️ 17 seconds</span>
+            </div>
+          </button>
+          
+          <button id="insane-btn-start" class="difficulty-card">
+            <div class="card-header">
+              <span class="difficulty-icon">💀</span>
+              <span class="difficulty-name">Insane</span>
+            </div>
+            <div class="card-details">
+              <span class="grid-size">50 × 50</span>
+              <span class="time-limit">⏱️ 21 seconds</span>
+            </div>
+          </button>
+          
+          <button id="ultra-btn-start" class="difficulty-card ultra-card">
+            <div class="card-header">
+              <span class="difficulty-icon">👑</span>
+              <span class="difficulty-name">Ultra Extreme</span>
+            </div>
+            <div class="card-details">
+              <span class="grid-size">50 × 50</span>
+              <span class="time-limit">⏱️ 20 seconds</span>
+            </div>
+          </button>
+        </div>
+      </div>
+      
+      <div class="instructions">
+        <p class="instruction-text">Use <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> keys to move</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <section id="game-screen" class="hidden">
+    <!-- Game Header -->
+    <div class="game-header-bar">
+      <div class="header-left">
+        <div class="difficulty-badge" id="difficulty-badge"></div>
+      </div>
+      <div class="header-right">
+        <button id="restart-btn" class="header-btn restart-btn" title="Restart Game">
+          <span class="btn-icon">🔄</span>
+          <span class="btn-text">Restart</span>
+        </button>
+        <button id="back-btn" class="header-btn menu-btn" title="Back to Menu">
+          <span class="btn-icon">🏠</span>
+          <span class="btn-text">Menu</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game Message -->
+    <div id="msg"></div>
+
+    <!-- Game Board -->
+    <div id="board-wrap" class="board-container">
+      <div id="board" aria-hidden="false"></div>
+    </div>
+
+    <!-- Controls Display -->
+    <div class="controls-display">
+      <div class="controls-title">Controls</div>
+      <div class="controls-grid">
+        <div class="control-group">
+          <div class="control-label">WASD</div>
+          <div class="control-keys">
+            <kbd id="key-w" class="control-key">W</kbd>
+            <kbd id="key-a" class="control-key">A</kbd>
+            <kbd id="key-s" class="control-key">S</kbd>
+            <kbd id="key-d" class="control-key">D</kbd>
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="control-label">Arrow Keys</div>
+          <div class="control-keys">
+            <kbd id="key-arrow-up" class="control-key">↑</kbd>
+            <kbd id="key-arrow-left" class="control-key">←</kbd>
+            <kbd id="key-arrow-down" class="control-key">↓</kbd>
+            <kbd id="key-arrow-right" class="control-key">→</kbd>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timer -->
+    <div id="timer-wrap" class="timer-container">
+      <div class="timer-label">
+        <span class="timer-icon">⏱️</span>
+        <span class="timer-text">Time Remaining</span>
+      </div>
+      <div class="timer-bar-wrapper">
+        <div id="timer-bar" class="timer-bar"></div>
+      </div>
+    </div>
+  </section>
+
+<script src="script.js"></script>
+</body>
+</html>

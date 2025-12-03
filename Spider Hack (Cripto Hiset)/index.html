@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spider Web Logic Puzzle</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- UI Overlays -->
+    <div id="difficultyMenu" class="screen-overlay">
+        <h1 style="color: #00ff00; font-size: 3rem; margin-bottom: 2rem; text-shadow: 0 0 20px #00ff00;">SPIDER HACK</h1>
+        <p style="color: #aaa; font-size: 1.2rem; margin-bottom: 3rem;">Select Difficulty</p>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: center;">
+            <button id="easyBtn" class="difficulty-btn" data-difficulty="easy">EASY (4-5 Points)</button>
+            <button id="mediumBtn" class="difficulty-btn" data-difficulty="medium">MEDIUM (5-6 Points)</button>
+            <button id="hardBtn" class="difficulty-btn" data-difficulty="hard">HARD (6-8 Points)</button>
+        </div>
+    </div>
+    
+    <div id="startScreen" class="screen-overlay hidden">
+        <h1 id="startText">Starting Spider...</h1>
+        <div id="countdown" class="countdown"></div>
+    </div>
+    
+    <div id="timerBarContainer" class="timer-container">
+        <div id="timerBar" class="timer-bar"></div>
+    </div>
+    
+    <div id="winScreen" class="screen-overlay hidden">
+        <h1 class="win-text">HACK SUCCESSFUL</h1>
+        <p class="subtitle">System Unlocked</p>
+    </div>
+    
+    <div id="failScreen" class="screen-overlay hidden">
+        <h1 class="fail-text">YOUR HACK HAS BEEN FUCKED UP</h1>
+        <p class="subtitle">HACK FAILED — SYSTEM LOCKED</p>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html>
+
+

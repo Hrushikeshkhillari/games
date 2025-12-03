@@ -1,0 +1,398 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: #1a1a1a;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.game-header {
+    width: 100%;
+    text-align: center;
+}
+
+.game-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    color: #fff;
+    font-weight: normal;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.game-stats.hidden {
+    display: none;
+}
+
+.stat-item {
+    background: #3a3a3a;
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 1px solid #555;
+}
+
+.stat-label {
+    font-weight: bold;
+    margin-right: 8px;
+    color: #ccc;
+}
+
+#score, #timer, #found {
+    font-size: 1.5em;
+    color: #fff;
+}
+
+#timer {
+    color: #fff;
+}
+
+.target-char {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #fff;
+    display: inline-block;
+    text-align: center;
+    margin: 15px auto;
+    padding: 0;
+    background: #181818;
+    border-radius: 5px;
+    border: 2px solid #555;
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    aspect-ratio: 1;
+}
+
+.grid-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    margin-top: -40px;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    gap: 0;
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    background: #000;
+    padding: 0;
+    border: 2px solid #000;
+}
+
+.timer-bar-container {
+    width: 100%;
+    max-width: 600px;
+    height: 8px;
+    background: #000000;
+    margin: -30px ;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #444;
+}
+
+.timer-bar {
+    height: 100%;
+    width: 100%;
+    background: #ff0000;
+    transition: width 0.1s linear;
+}
+
+/* Ensure all characters have the same dark color - target and non-target look identical */
+.grid-cell {
+    background: #2a2a2a !important;
+    border: 1px solid #000 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    color: #fff !important;
+    user-select: none;
+    opacity: 1 !important;
+}
+
+/* Hover effect - red background on mouse over */
+.grid-cell:hover,
+.grid-cell.hovered {
+    background: #ff0000 !important;
+    color: #fff !important;
+    cursor: pointer;
+}
+
+.grid-cell.target {
+    opacity: 1 !important;
+    animation: none !important;
+    color: #fff !important;
+    background: #181818 !important;
+}
+
+.grid-cell.target:hover,
+.grid-cell.target.hovered {
+    background: #ff0000 !important;
+    color: #fff !important;
+}
+
+.grid-cell.selected {
+    background: #ff0000 !important;
+    color: #fff !important;
+}
+
+.grid-cell.hovered {
+    background: #ff0000 !important;
+    color: #fff !important;
+}
+
+/* All non-target cells should continuously blink - very slow lighting effect */
+.grid-cell.blinking:not(.target) {
+    animation: blink 12s ease-in-out infinite;
+    color: #fff !important;
+    background: #181818 !important;
+}
+
+.grid-cell.blinking:hover,
+.grid-cell.blinking.hovered {
+    background: #ff0000 !important;
+    color: #fff !important;
+    animation: none !important;
+}
+
+.grid-cell.target.blinking {
+    animation: none !important;
+    opacity: 1 !important;
+}
+
+.grid-cell.hovered.target {
+    background: #ff0000 !important;
+}
+
+.grid-cell.hovered.blinking {
+    background: #ff0000 !important;
+    color: #fff !important;
+}
+
+/* All non-target cells should have faster blink animation when shuffling */
+.grid-cell.shuffling:not(.target) {
+    animation: blinkShuffle 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Blinking cells that are shuffling get faster blink animation */
+.grid-cell.shuffling.blinking:not(.target) {
+    animation: blinkShuffle 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Target should never have any animation */
+.grid-cell.target.shuffling {
+    animation: none !important;
+}
+
+@keyframes blink {
+    0% {
+        opacity: 0.3;
+    }
+    25% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes blinkShuffle {
+    0% {
+        opacity: 1;
+    }
+    25% {
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 0;
+    }
+    75% {
+        opacity: 0.2;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Ensure all non-target cells have continuous blink animation - slow lighting effect */
+.grid-cell:not(.target):not(.shuffling) {
+    animation: blink 12s ease-in-out infinite;
+}
+
+@keyframes foundPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.9), 0 0 40px rgba(0, 255, 255, 0.6);
+    }
+}
+
+.game-controls {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 30px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: #555;
+    color: #fff;
+    border: 1px solid #777;
+}
+
+.btn-primary:hover {
+    background: #666;
+}
+
+.btn-secondary {
+    background: #555;
+    color: #fff;
+    border: 1px solid #777;
+}
+
+.btn-secondary:hover {
+    background: #666;
+}
+
+.game-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.game-overlay.hidden {
+    display: none;
+}
+
+.overlay-content {
+    text-align: center;
+    padding: 40px;
+    background: #3a3a3a;
+    border-radius: 10px;
+    border: 2px solid #555;
+    max-width: 500px;
+}
+
+.overlay-content h2 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.overlay-content p {
+    font-size: 1.5em;
+    margin-bottom: 30px;
+    color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-header h1 {
+        font-size: 1.8em;
+    }
+    
+    .game-grid {
+        max-width: 100%;
+        gap: 3px;
+        padding: 5px;
+    }
+    
+    .grid-cell {
+        font-size: 1.5em;
+    }
+    
+    .target-char {
+        font-size: 2em;
+    }
+    
+    .stat-item {
+        padding: 8px 15px;
+        font-size: 0.9em;
+    }
+}
+
+/* Wrong selection animation */
+.grid-cell.wrong {
+    animation: wrongShake 0.5s ease;
+    background: #ff0000;
+    border-color: #ff0000;
+    opacity: 0.5;
+}
+
+@keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+

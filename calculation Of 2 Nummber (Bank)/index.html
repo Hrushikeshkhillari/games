@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Challenge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+      <div class="loader-container">
+        <div class="main-circle">
+          <div class="inner-circle inner-circle--1"></div>
+          <div class="inner-circle inner-circle--2"></div>
+          <div class="inner-circle inner-circle--3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Interface -->
+    <div class="game-interface" id="game-interface" aria-hidden="true">
+      <!-- Equation Display -->
+      <div class="equation-line">
+        <span class="equation-number" id="number-a">--</span>
+        <span class="equation-operator" id="operator">+</span>
+        <span class="equation-number" id="number-b">--</span>
+      </div>
+
+      <!-- Input Section -->
+      <form class="answer-form" id="answer-form" autocomplete="off">
+        <input
+          type="number"
+          id="answer-input"
+          placeholder="Type answer"
+          required
+          autofocus
+        />
+      </form>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <!-- Timer Bar -->
+    <div class="timer-container">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+
+    <!-- Result Screen -->
+    <div class="result-screen" id="result-screen" aria-hidden="true">
+      <div class="result-content">
+        <h1 class="result-title" id="result-title">SUCCESSFUL</h1>
+        <p class="result-message" id="result-message">All rounds completed!</p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Character Blink Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Random Character Challenge</h1>
+            <div class="game-stats hidden">
+                <div class="stat-item">
+                    <span class="stat-label">Score:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time:</span>
+                    <span id="timer">60</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Found:</span>
+                    <span id="found">0/11</span>
+                </div>
+            </div>
+            <div class="game-controls">
+                <button id="start-btn" class="btn btn-primary">Start Game</button>
+                <button id="reset-btn" class="btn btn-secondary">Reset</button>
+            </div>
+            <div id="target-char" class="target-char">-</div>
+        </div>
+        
+        <div class="grid-container">
+            <div id="game-grid" class="game-grid"></div>
+        </div>
+        
+        <div class="timer-bar-container">
+            <div id="timer-bar" class="timer-bar"></div>
+        </div>
+        
+        <div id="game-overlay" class="game-overlay hidden">
+            <div class="overlay-content">
+                <h2 id="overlay-title">Game Over</h2>
+                <p id="overlay-message"></p>
+                <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+

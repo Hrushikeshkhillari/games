@@ -1,0 +1,356 @@
+/* Fullscreen dark background */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #1a1a1a; /* dark black background */
+  font-family: Arial, sans-serif;
+  padding-top: 60px; /* Space for top menu */
+}
+
+/* Top Menu Bar */
+#top-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 10px 20px;
+  background: rgba(0, 0, 0, 0.85);
+  border-bottom-left-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.menu-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.menu-tab {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+}
+
+.menu-tab:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.menu-tab.active {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+/* Main wrapper */
+#main-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* View panels */
+.view-panel {
+  display: none;
+}
+
+.view-panel.active {
+  display: flex;
+}
+
+/* Main container */
+#game-container {
+  width: 500px;
+  height: 450px;
+  background: rgba(0, 0, 0, 0.712);
+  border-radius: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* stack elements at top */
+  gap: 5px; /* small gap between grid and timer bar */
+  flex-shrink: 0;
+}
+
+/* Permutation Calculator Panel */
+#calculator-panel {
+  width: 600px;
+  min-height: 450px;
+  background: rgba(0, 0, 0, 0.712);
+  border-radius: 10px;
+  padding: 20px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  flex-direction: column;
+}
+
+#calculator-title {
+  color: white;
+  font-size: 22px;
+  text-align: center;
+  margin: 0 0 20px 0;
+  font-weight: bold;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  padding-bottom: 10px;
+}
+
+.calculator-content {
+  color: white;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #ccc;
+  font-weight: bold;
+}
+
+#number-input {
+  padding: 12px;
+  font-size: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+#number-input:focus {
+  border-color: #4CAF50;
+}
+
+#number-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#calculate-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background: #4CAF50;
+  color: white;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+#calculate-btn:hover {
+  background: #45a049;
+}
+
+#result-container {
+  margin-top: 20px;
+}
+
+.result-section {
+  margin-bottom: 20px;
+}
+
+.result-section h4 {
+  color: #4CAF50;
+  font-size: 16px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 5px;
+}
+
+.permutations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+}
+
+.permutation-item {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s;
+  cursor: pointer;
+  user-select: none;
+}
+
+.permutation-item:hover {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: #4CAF50;
+  transform: scale(1.05);
+}
+
+.permutation-item:active {
+  transform: scale(0.95);
+}
+
+.permutation-item.copied {
+  background: #4CAF50;
+  border-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+}
+
+/* Scrollbar styling for permutations list */
+.permutations-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.permutations-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.permutations-grid::-webkit-scrollbar-thumb {
+  background: #4CAF50;
+  border-radius: 4px;
+}
+
+.permutations-grid::-webkit-scrollbar-thumb:hover {
+  background: #45a049;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  #top-menu {
+    position: relative;
+    padding: 10px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  
+  body {
+    padding-top: 0;
+  }
+  
+  .menu-tabs {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .menu-tab {
+    width: 100%;
+  }
+  
+  #game-container,
+  #calculator-panel {
+    width: 100%;
+    max-width: 500px;
+  }
+}
+
+
+/* Number grid (5 × 4 = 20) */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(5, 80px);
+  grid-gap: 10px;
+  justify-content: center;
+  margin-bottom: 0; /* Remove extra bottom margin */
+}
+
+/* Number blocks */
+.cell {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent; /* no border by default */
+  color: white;
+  font-size: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  background: transparent;
+  transition: border 0.2s ease;
+}
+
+/* Hover effect: only for active (not clicked) numbers */
+.cell:not(.disabled):hover {
+  border: 2px solid white; /* border appears on hover */
+}
+
+/* Clicked numbers (disabled) */
+.cell.disabled {
+  background: transparent;
+  color: #888;
+  border: 2px solid transparent; /* no border for clicked numbers */
+  cursor: default;
+}
+
+/* Timer bar container */
+#time-bar-container {
+  width: 100%;
+  height: 20px;
+  background: #222;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 0; /* remove extra top margin */
+}
+/* Timer bar itself */
+#time-bar {
+  width: 100%;
+  height: 100%;
+  background: green;
+  transition: width 1s linear, background 0.3s linear;
+}
+
+/* Game Over text */
+#game-over {
+  font-size: 22px;
+  font-weight: bold;
+  color: red;
+  margin-top: 10px;
+  display: none;
+}
+
+/* Start button styling */
+#start-btn {
+  padding: 10px 20px;
+  font-size: 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: green;
+  color: white;
+  transition: background 0.2s ease;
+}
+
+#start-btn:hover {
+  background: darkgreen;
+}
+
+#game-title {
+  color: white;
+  font-size: 24px;
+  text-align: center;
+  margin: 0 0 10px 0; /* only bottom margin for spacing */
+  font-weight: bold;
+}
