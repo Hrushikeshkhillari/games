@@ -7,9 +7,15 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="top-buttons">
+        <button id="start-btn" class="btn btn-primary">Start Game</button>
+        <button id="reset-btn" class="btn btn-reset">Reset</button>
+    </div>
     <div class="game-container">
+        <div class="top-header">
+            <h1 class="main-title">Random Character Challenge</h1>
+        </div>
         <div class="game-header">
-            <h1>Random Character Challenge</h1>
             <div class="game-stats hidden">
                 <div class="stat-item">
                     <span class="stat-label">Score:</span>
@@ -25,8 +31,6 @@
                 </div>
             </div>
             <div class="game-controls">
-                <button id="start-btn" class="btn btn-primary">Start Game</button>
-                <button id="reset-btn" class="btn btn-secondary">Reset</button>
             </div>
             <div id="target-char" class="target-char">-</div>
         </div>
@@ -46,6 +50,10 @@
                 <button id="play-again-btn" class="btn btn-primary">Play Again</button>
             </div>
         </div>
+    </div>
+    
+    <div class="bottom-footer">
+        <p class="warning-text">Warning: Use fullscreen mode for a better experience</p>
     </div>
     
     <script src="script.js"></script>

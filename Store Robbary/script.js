@@ -93,7 +93,7 @@ function startTimer() {
       return;
     }
     renderGrid(shuffleNumbers());
-  }, 2000);
+  }, 1500);
 }
 
 // Start or restart the game

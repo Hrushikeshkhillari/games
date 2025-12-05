@@ -192,7 +192,6 @@ const sentences = [
   "We should be tolerant always"
 ];
 
-let currentFilterMode = 'all';
 let filteredSentences = [];
 
 // Utility functions
@@ -200,16 +199,7 @@ function reverseString(str) {
   return str.split('').reverse().join('');
 }
 
-function shuffleString(str) {
-  const arr = str.split('');
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr.join('');
-}
-
-// Check if two words are anagrams (shuffled letters)
+// Check if two words are anagrams
 function isAnagram(word1, word2) {
   const clean1 = word1.toLowerCase().replace(/[^a-z]/g, '').split('').sort().join('');
   const clean2 = word2.toLowerCase().replace(/[^a-z]/g, '').split('').sort().join('');
@@ -220,16 +210,14 @@ function isAnagram(word1, word2) {
 function findAnagramMatches(sentence, searchTerm) {
   const matches = [];
   const words = sentence.split(/\s+/);
-  const cleanSearch = searchTerm.toLowerCase().replace(/[^a-z]/g, '');
   
-  if (cleanSearch.length === 0) return matches;
+  if (!searchTerm || searchTerm.trim() === '') return matches;
   
-  words.forEach((word, index) => {
+  words.forEach((word) => {
     if (isAnagram(word, searchTerm)) {
       matches.push({
         word: word,
-        index: index,
-        originalIndex: sentence.indexOf(word)
+        index: words.indexOf(word)
       });
     }
   });
@@ -237,6 +225,7 @@ function findAnagramMatches(sentence, searchTerm) {
   return matches;
 }
 
+// Detect patterns in sentence
 function detectPatterns(sentence) {
   const patterns = [];
   const words = sentence.split(' ');
@@ -272,17 +261,7 @@ function detectPatterns(sentence) {
   return patterns;
 }
 
-function setFilterMode(mode, button) {
-  currentFilterMode = mode;
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.classList.remove('active');
-  });
-  if (button) {
-    button.classList.add('active');
-  }
-  filterSentences();
-}
-
+// Filter sentences based on search
 function filterSentences() {
   const searchValue = document.getElementById('searchInput').value.trim();
   const searchLower = searchValue.toLowerCase();
@@ -301,7 +280,7 @@ function filterSentences() {
       return true;
     }
     
-    // Check for anagram matches (shuffled letters)
+    // Check for anagram matches
     const anagramMatches = findAnagramMatches(sentence, searchValue);
     if (anagramMatches.length > 0) {
       return true;
@@ -313,6 +292,7 @@ function filterSentences() {
   displaySentences();
 }
 
+// Highlight search terms in text
 function highlightText(text, searchTerm) {
   if (!searchTerm || searchTerm.trim() === '') {
     return text;
@@ -321,20 +301,17 @@ function highlightText(text, searchTerm) {
   const searchLower = searchTerm.toLowerCase().replace(/[^a-z]/g, '');
   const words = text.split(/(\s+)/);
   const highlightedWords = [];
-  const anagramMatches = findAnagramMatches(text, searchTerm);
-  const anagramWords = new Set(anagramMatches.map(m => m.word.toLowerCase().replace(/[^a-z]/g, '')));
   
   words.forEach(word => {
     const wordLower = word.toLowerCase();
     const cleanWord = word.replace(/[^a-z]/gi, '').toLowerCase();
     
-    // Check for anagram match first (shuffled letters)
+    // Check for anagram match first
     if (cleanWord.length > 0 && isAnagram(word, searchTerm)) {
       highlightedWords.push(`<span class="highlight-red">${word}</span>`);
     }
     // Check for direct substring match
     else if (wordLower.includes(searchLower) && searchLower.length > 0) {
-      // Highlight the matching part
       const regex = new RegExp(`(${searchLower})`, 'gi');
       highlightedWords.push(word.replace(regex, '<span class="highlight-red">$1</span>'));
     }
@@ -346,6 +323,7 @@ function highlightText(text, searchTerm) {
   return highlightedWords.join('');
 }
 
+// Display sentences
 function displaySentences() {
   const container = document.getElementById('container');
   container.innerHTML = '';
@@ -357,7 +335,7 @@ function displaySentences() {
   
   const searchValue = document.getElementById('searchInput').value.trim();
   
-  filteredSentences.forEach((sentence, index) => {
+  filteredSentences.forEach((sentence) => {
     const patterns = detectPatterns(sentence);
     const card = document.createElement('div');
     card.className = 'sentence-card';
@@ -372,6 +350,7 @@ function displaySentences() {
         } else if (p.type === 'repeated') {
           return `<span class="badge badge-repeated">Repeated: ${p.word} (${p.count}x)</span>`;
         }
+        return '';
       }).join('');
     }
     
@@ -386,65 +365,123 @@ function displaySentences() {
     
     card.innerHTML = `
       <div class="card-header">
-        <span class="sentence-number">#${index + 1}</span>
         <div class="pattern-badges">
           ${anagramBadge}
           ${patternBadges}
         </div>
       </div>
       <div class="sentence-text">${highlightedSentence}</div>
-      <div class="card-actions">
-        <button class="action-btn" onclick="showReversed(${index})">🔄 Reverse</button>
-        <button class="action-btn" onclick="showShuffled(${index})">🔀 Shuffle</button>
-        <button class="action-btn" onclick="showDetails(${index})">ℹ️ Details</button>
-      </div>
     `;
     
     container.appendChild(card);
   });
 }
 
-function showReversed(index) {
-  const sentence = filteredSentences[index];
-  const reversed = reverseString(sentence);
-  alert(`Original: ${sentence}\n\nReversed: ${reversed}`);
-}
+// Voice Search functionality
+let recognition = null;
+let isListening = false;
 
-function showShuffled(index) {
-  const sentence = filteredSentences[index];
-  const shuffled = shuffleString(sentence);
-  alert(`Original: ${sentence}\n\nShuffled: ${shuffled}`);
-}
-
-function showDetails(index) {
-  const sentence = filteredSentences[index];
-  const patterns = detectPatterns(sentence);
-  const words = sentence.split(' ');
-  
-  let details = `Sentence: ${sentence}\n\n`;
-  details += `Word Count: ${words.length}\n`;
-  details += `Character Count: ${sentence.length}\n\n`;
-  
-  if (patterns.length > 0) {
-    details += `Patterns Found:\n`;
-    patterns.forEach(p => {
-      if (p.type === 'reversed') {
-        details += `- Reversed word: "${p.word}" matches "${p.match}"\n`;
-      } else if (p.type === 'palindrome') {
-        details += `- Palindrome: "${p.word}"\n`;
-      } else if (p.type === 'repeated') {
-        details += `- Repeated word: "${p.word}" (${p.count} times)\n`;
-      }
-    });
+// Initialize Speech Recognition
+function initVoiceRecognition() {
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    recognition.onstart = function() {
+      isListening = true;
+      updateVoiceButton(true);
+      const voiceBtn = document.getElementById('voiceSearchBtn');
+      voiceBtn.style.animation = 'pulse 1.5s ease-in-out infinite';
+    };
+    
+    recognition.onresult = function(event) {
+      const transcript = event.results[0][0].transcript;
+      document.getElementById('searchInput').value = transcript;
+      filterSentences();
+      updateVoiceButton(false);
+      isListening = false;
+    };
+    
+    recognition.onerror = function(event) {
+      console.error('Speech recognition error:', event.error);
+      updateVoiceButton(false);
+      isListening = false;
+      alert('Voice recognition error. Please try again.');
+    };
+    
+    recognition.onend = function() {
+      updateVoiceButton(false);
+      isListening = false;
+    };
   } else {
-    details += `No special patterns detected.`;
+    console.warn('Speech recognition not supported in this browser');
+    const voiceBtn = document.getElementById('voiceSearchBtn');
+    if (voiceBtn) {
+      voiceBtn.style.display = 'none';
+    }
+  }
+}
+
+function toggleVoiceSearch() {
+  if (!recognition) {
+    alert('Voice search is not supported in your browser. Please use a modern browser like Chrome, Edge, or Safari.');
+    return;
   }
   
-  alert(details);
+  if (isListening) {
+    recognition.stop();
+    isListening = false;
+    updateVoiceButton(false);
+  } else {
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error('Error starting recognition:', error);
+      updateVoiceButton(false);
+    }
+  }
+}
+
+function updateVoiceButton(listening) {
+  const voiceIcon = document.getElementById('voiceSearchIcon');
+  const voiceBtn = document.getElementById('voiceSearchBtn');
+  
+  if (listening) {
+    voiceIcon.className = 'fa-solid fa-circle';
+    voiceIcon.style.color = '#ff0000';
+    voiceBtn.classList.add('listening');
+  } else {
+    voiceIcon.className = 'fa-solid fa-microphone';
+    voiceIcon.style.color = '';
+    voiceBtn.classList.remove('listening');
+    voiceBtn.style.animation = 'none';
+  }
+}
+
+// Theme toggle functionality
+function toggleTheme() {
+  const body = document.body;
+  const themeBtn = document.getElementById('themeToggle');
+  
+  if (body.classList.contains('dark-mode')) {
+    body.classList.remove('dark-mode');
+    body.classList.add('light-mode');
+    themeBtn.textContent = '🌙';
+  } else {
+    body.classList.remove('light-mode');
+    body.classList.add('dark-mode');
+    themeBtn.textContent = '☀️';
+  }
 }
 
 // Initialize
 window.onload = function() {
   filteredSentences = sentences;
   displaySentences();
+  document.body.classList.add('light-mode');
+  initVoiceRecognition();
 };

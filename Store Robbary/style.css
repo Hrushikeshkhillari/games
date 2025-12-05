@@ -288,7 +288,7 @@ body {
   font-size: 20px;
   border-radius: 5px;
   cursor: pointer;
-  background: transparent;
+  background: #202020; /* light black */
   transition: border 0.2s ease;
 }
 
@@ -312,7 +312,7 @@ body {
   background: #222;
   border-radius: 5px;
   overflow: hidden;
-  margin-top: 0; /* remove extra top margin */
+  margin-top: 15px; /* move down slightly */
 }
 /* Timer bar itself */
 #time-bar {
