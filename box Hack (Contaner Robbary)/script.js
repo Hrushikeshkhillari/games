@@ -10,7 +10,8 @@ const gameScreen = document.getElementById('game-screen');
 const board = document.getElementById('board');
 const msg = document.getElementById('msg');
 
-const timerBar = document.getElementById('timer-bar');
+// Timer bar will be created dynamically in buildBoard
+let timerBar = null;
 
 // ---------- State ----------
 let ROWS = 20;
@@ -276,6 +277,18 @@ function generatePath(rows, cols){
   return unique;
 }
 
+// Cache cell elements for better performance
+const cellCache = new Map();
+
+function getCell(r, c) {
+  const key = `${r}_${c}`;
+  if (!cellCache.has(key)) {
+    const el = board.querySelector(`.cell[data-r='${r}'][data-c='${c}']`);
+    if (el) cellCache.set(key, el);
+  }
+  return cellCache.get(key);
+}
+
 // ---------- Board rendering ----------
 function buildBoard(rows, cols){
   board.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
@@ -313,18 +326,6 @@ function buildBoard(rows, cols){
     }
     timerBar = document.getElementById('timer-bar');
   }
-}
-
-// Cache cell elements for better performance
-const cellCache = new Map();
-
-function getCell(r, c) {
-  const key = `${r}_${c}`;
-  if (!cellCache.has(key)) {
-    const el = board.querySelector(`.cell[data-r='${r}'][data-c='${c}']`);
-    if (el) cellCache.set(key, el);
-  }
-  return cellCache.get(key);
 }
 
 function paintAll(){
