@@ -279,40 +279,80 @@ function generatePath(rows, cols){
 // ---------- Board rendering ----------
 function buildBoard(rows, cols){
   board.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
-  board.style.gridTemplateRows = `repeat(${rows}, var(--cell-size))`;
-  board.innerHTML = '';
+  board.style.gridTemplateRows = `repeat(${rows}, var(--cell-size)) auto`;
+  
+  // Clear cache when rebuilding
+  cellCache.clear();
+  
+  // Use document fragment for better performance
+  const fragment = document.createDocumentFragment();
   for (let r=0; r<rows; r++){
     for (let c=0; c<cols; c++){
       const el = document.createElement('div');
       el.className = 'cell';
-      el.dataset.r = r; el.dataset.c = c;
-      board.appendChild(el);
+      el.dataset.r = r; 
+      el.dataset.c = c;
+      fragment.appendChild(el);
     }
+  }
+  board.innerHTML = '';
+  board.appendChild(fragment);
+  
+  // Add timer bar as last element in grid
+  const timerWrap = document.getElementById('timer-wrap');
+  if (!timerWrap) {
+    const timerContainer = document.createElement('div');
+    timerContainer.id = 'timer-wrap';
+    timerContainer.className = 'timer-bar-grid-item';
+    timerContainer.innerHTML = '<div class="timer-bar-wrapper"><div id="timer-bar" class="timer-bar"></div></div>';
+    board.appendChild(timerContainer);
+    timerBar = document.getElementById('timer-bar');
+  } else {
+    if (!board.contains(timerWrap)) {
+      board.appendChild(timerWrap);
+    }
+    timerBar = document.getElementById('timer-bar');
   }
 }
 
+// Cache cell elements for better performance
+const cellCache = new Map();
+
+function getCell(r, c) {
+  const key = `${r}_${c}`;
+  if (!cellCache.has(key)) {
+    const el = board.querySelector(`.cell[data-r='${r}'][data-c='${c}']`);
+    if (el) cellCache.set(key, el);
+  }
+  return cellCache.get(key);
+}
+
 function paintAll(){
-  // clear classes
-  board.querySelectorAll('.cell').forEach(el => {
+  // Batch DOM updates for better performance
+  const cells = board.querySelectorAll('.cell');
+  
+  // Clear all cells
+  cells.forEach(el => {
     el.classList.remove('path','player','start');
     const oldArrow = el.querySelector('.player-direction');
     if (oldArrow) oldArrow.remove();
   });
-  // paint path
-  for (let i=0;i<path.length;i++){
+  
+  // Paint path
+  for (let i=0; i<path.length; i++){
     const p = path[i];
-    const el = board.querySelector(`.cell[data-r='${p.r}'][data-c='${p.c}']`);
+    const el = getCell(p.r, p.c);
     if (el) {
       el.classList.add('path');
       if (i===0) el.classList.add('start');
     }
   }
-  // paint player
+  
+  // Paint player
   if (player){
-    const pel = board.querySelector(`.cell[data-r='${player.r}'][data-c='${player.c}']`);
+    const pel = getCell(player.r, player.c);
     if (pel) {
       pel.classList.add('player');
-      // find next position in path and show direction
       const playerIdx = path.findIndex(p => p.r === player.r && p.c === player.c);
       if (playerIdx >= 0 && playerIdx < path.length - 1){
         const nextPos = path[playerIdx + 1];
@@ -335,21 +375,35 @@ function paintAll(){
 // ---------- Timer ----------
 function startTimer(seconds){
   stopTimer();
+  // Ensure timer bar reference is up to date
+  if (!timerBar) {
+    timerBar = document.getElementById('timer-bar');
+  }
+  if (!timerBar) return; // Safety check
+  
   timeLeft = seconds;
+  const totalSeconds = seconds;
   timerBar.style.width = '100%';
-  timerBar.classList.remove('flicker');
+  timerBar.classList.remove('critical');
+  let isCritical = false;
+  
   timerInterval = setInterval(()=>{
     timeLeft -= 0.1;
     if (timeLeft < 0) timeLeft = 0;
-    const percent = Math.max(0, (timeLeft / seconds) * 100);
-    timerBar.style.width = percent + '%';
-    if (timeLeft <= 3) {
-      timerBar.classList.add('flicker');
-      timerBar.classList.add('urgent');
-    } else {
-      timerBar.classList.remove('flicker');
-      timerBar.classList.remove('urgent');
+    
+    // Smooth calculation - bar follows timing smoothly until end
+    const percent = (timeLeft / totalSeconds) * 100;
+    timerBar.style.width = Math.max(0, percent) + '%';
+    
+    // Add critical styling in last 2 seconds (optimized)
+    if (timeLeft <= 2 && timeLeft > 0 && !isCritical) {
+      timerBar.classList.add('critical');
+      isCritical = true;
+    } else if (timeLeft > 2 && isCritical) {
+      timerBar.classList.remove('critical');
+      isCritical = false;
     }
+    
     if (timeLeft <= 0){
       stopTimer();
       endGame(false, 'Time is up!');
@@ -383,12 +437,15 @@ function startGame(size, variant){
 
   // Compute responsive cell size so large grids (40x40 / 50x50) fit on common screens (e.g., 1920×1080)
   // Leave room for UI (msg/timer). Use available viewport area heuristics.
-  // For harder difficulties, use more screen space
+  // For harder difficulties, use more screen space and larger cells
   const isHardDifficulty = size >= 40;
-  const widthMultiplier = isHardDifficulty ? 0.85 : 0.74;
-  const heightMultiplier = isHardDifficulty ? 0.75 : 0.66;
-  const maxWidth = isHardDifficulty ? 1800 : 1600;
-  const maxHeight = isHardDifficulty ? 1200 : 1100;
+  const isExtremeOrHigher = size >= 40; // Extreme, Insane, Ultra Extreme
+  
+  // Use more screen space for extreme difficulties
+  const widthMultiplier = isExtremeOrHigher ? 0.92 : (isHardDifficulty ? 0.85 : 0.74);
+  const heightMultiplier = isExtremeOrHigher ? 0.82 : (isHardDifficulty ? 0.75 : 0.66);
+  const maxWidth = isExtremeOrHigher ? 2000 : (isHardDifficulty ? 1800 : 1600);
+  const maxHeight = isExtremeOrHigher ? 1400 : (isHardDifficulty ? 1200 : 1100);
   
   const availWidth = Math.min(window.innerWidth * widthMultiplier, maxWidth);
   const availHeight = Math.min(window.innerHeight * heightMultiplier, maxHeight);
@@ -396,14 +453,29 @@ function startGame(size, variant){
   const reservedH = isHardDifficulty ? 180 : 160; // header, message, timer area
   let computedCell = Math.floor(Math.min((availWidth - reservedW) / COLS, (availHeight - reservedH) / ROWS));
   
-  // Clamp cell size to reasonable bounds - allow larger cells for hard difficulties
-  const minCell = isHardDifficulty ? 10 : 8;
-  const maxCell = isHardDifficulty ? 36 : 32;
+  // Clamp cell size to reasonable bounds - larger cells for extreme difficulties
+  const minCell = isExtremeOrHigher ? 14 : (isHardDifficulty ? 12 : 8);
+  const maxCell = isExtremeOrHigher ? 42 : (isHardDifficulty ? 40 : 32);
   computedCell = Math.max(minCell, Math.min(maxCell, computedCell));
+  
+  // For extreme difficulties, ensure minimum visibility by boosting cell size if too small
+  if (isExtremeOrHigher && computedCell < 16) {
+    computedCell = Math.max(16, computedCell);
+  }
+  
+  // For hard difficulty only, boost cell size slightly
+  if (isHardDifficulty && !isExtremeOrHigher && computedCell < 14) {
+    computedCell = Math.max(14, computedCell);
+  }
   
   document.documentElement.style.setProperty('--cell-size', computedCell + 'px');
   if (board) {
-    board.style.gap = (computedCell >= 18 ? '3px' : '1px');
+    // Adjust gap based on cell size - larger gaps for extreme difficulties
+    if (isExtremeOrHigher) {
+      board.style.gap = (computedCell >= 20 ? '4px' : (computedCell >= 16 ? '3px' : '2px'));
+    } else {
+      board.style.gap = (computedCell >= 18 ? '3px' : '1px');
+    }
     // Add class for hard difficulties
     if (isHardDifficulty) {
       board.parentElement.classList.add('hard-difficulty-board');
@@ -454,20 +526,26 @@ function endGame(success, text){
 
   // Use clearer end messages with proper classes for styling
   if (success) {
-    msg.innerHTML = '<span class="logo">💻</span> HACK SUCCESSFUL';
+    msg.innerHTML = '<span class="logo">✅</span> SUCCESSFUL!';
     msg.className = 'game-message hack-success';
+    msg.style.display = 'block';
+    msg.style.opacity = '1';
   } else {
     msg.innerHTML = '<span class="logo">❌</span> HACK FAILED';
     msg.className = 'game-message hack-failed';
+    msg.style.display = 'block';
+    msg.style.opacity = '1';
   }
 
   // Add small glitch/flicker at the end
-  timerBar.classList.remove('flicker');
+  if (timerBar) timerBar.classList.remove('flicker');
 
   // Always show end message for 5 seconds before returning to menu
   const waitTime = 5000;
   setTimeout(() => {
     msg.className = '';
+    msg.style.opacity = '0';
+    msg.style.display = 'none';
     gameScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
   }, waitTime);
@@ -550,7 +628,8 @@ function onKey(e) {
 
   if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) return;
 
-  const onPath = path.some(p => p.r === nr && p.c === nc);
+  // Optimize path check using occupiedSet
+  const onPath = isOccupied(nr, nc);
 
   if (!onPath) {
     timeLeft = Math.max(0, timeLeft - 1);
