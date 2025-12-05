@@ -1,5 +1,6 @@
 // ---------- Elements (must match your HTML) ----------
 const startScreen = document.getElementById('start-screen');
+const loadingScreen = document.getElementById('loading-screen');
 const normalBtnStart = document.getElementById('normal-btn-start');
 const hardBtnStart = document.getElementById('hard-btn-start');
 const extremeBtnStart = document.getElementById('extreme-btn-start');
@@ -292,7 +293,7 @@ function getCell(r, c) {
 // ---------- Board rendering ----------
 function buildBoard(rows, cols){
   board.style.gridTemplateColumns = `repeat(${cols}, var(--cell-size))`;
-  board.style.gridTemplateRows = `repeat(${rows}, var(--cell-size)) auto`;
+  board.style.gridTemplateRows = `repeat(${rows}, var(--cell-size)) 32px`;
   
   // Clear cache when rebuilding
   cellCache.clear();
@@ -308,23 +309,40 @@ function buildBoard(rows, cols){
       fragment.appendChild(el);
     }
   }
+  
+  // Save timer wrap before clearing
+  const timerWrap = document.getElementById('timer-wrap');
+  const timerWrapHTML = timerWrap ? timerWrap.outerHTML : null;
+  
   board.innerHTML = '';
   board.appendChild(fragment);
   
-  // Add timer bar as last element in grid
-  const timerWrap = document.getElementById('timer-wrap');
-  if (!timerWrap) {
-    const timerContainer = document.createElement('div');
+  // Add timer bar as last element in grid (spans all columns)
+  let timerContainer = null;
+  if (timerWrapHTML) {
+    // Re-add the timer wrap from saved HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = timerWrapHTML;
+    timerContainer = tempDiv.firstElementChild;
+    board.appendChild(timerContainer);
+  } else {
+    // Create timer bar if it doesn't exist
+    timerContainer = document.createElement('div');
     timerContainer.id = 'timer-wrap';
-    timerContainer.className = 'timer-bar-grid-item';
+    timerContainer.className = 'timer-container';
     timerContainer.innerHTML = '<div class="timer-bar-wrapper"><div id="timer-bar" class="timer-bar"></div></div>';
     board.appendChild(timerContainer);
-    timerBar = document.getElementById('timer-bar');
-  } else {
-    if (!board.contains(timerWrap)) {
-      board.appendChild(timerWrap);
-    }
-    timerBar = document.getElementById('timer-bar');
+  }
+  
+  // Ensure timer bar reference is up to date and reset
+  timerBar = document.getElementById('timer-bar');
+  if (timerBar) {
+    // Reset timer bar to initial state
+    timerBar.style.display = 'block';
+    timerBar.style.visibility = 'visible';
+    timerBar.style.opacity = '1';
+    timerBar.classList.remove('critical');
+    // Width will be set when timer starts via updateTimeBar()
   }
 }
 
@@ -374,50 +392,84 @@ function paintAll(){
 }
 
 // ---------- Timer ----------
-function startTimer(seconds){
-  stopTimer();
-  // Ensure timer bar reference is up to date
+function updateTimeBar() {
   if (!timerBar) {
     timerBar = document.getElementById('timer-bar');
   }
-  if (!timerBar) return; // Safety check
+  if (!timerBar) return;
+  
+  const percent = Math.max(0, (timeLeft / totalTime) * 100);
+  timerBar.style.width = percent + '%';
+  
+  // Use setProperty with important flag to override CSS
+  if (timeLeft > totalTime * 0.66) {
+    timerBar.style.setProperty('background', '#4CAF50', 'important');
+    timerBar.classList.remove('critical');
+  } else if (timeLeft > 2) {
+    timerBar.style.setProperty('background', '#ff9800', 'important');
+    timerBar.classList.remove('critical');
+  } else {
+    timerBar.style.setProperty('background', '#f44336', 'important');
+    timerBar.classList.add('critical');
+  }
+}
+
+function startTimer(seconds){
+  stopTimer();
+  
+  timerBar = document.getElementById('timer-bar');
+  if (!timerBar) {
+    // Timer bar not found - will be created in buildBoard
+    return;
+  }
   
   timeLeft = seconds;
-  const totalSeconds = seconds;
-  timerBar.style.width = '100%';
-  timerBar.classList.remove('critical');
-  let isCritical = false;
+  totalTime = seconds;
   
-  timerInterval = setInterval(()=>{
+  timerBar.style.display = 'block';
+  timerBar.style.visibility = 'visible';
+  timerBar.style.opacity = '1';
+  timerBar.classList.remove('critical');
+  
+  updateTimeBar();
+  
+  timerInterval = setInterval(() => {
     timeLeft -= 0.1;
     if (timeLeft < 0) timeLeft = 0;
     
-    // Smooth calculation - bar follows timing smoothly until end
-    const percent = (timeLeft / totalSeconds) * 100;
-    timerBar.style.width = Math.max(0, percent) + '%';
+    updateTimeBar();
     
-    // Add critical styling in last 2 seconds (optimized)
-    if (timeLeft <= 2 && timeLeft > 0 && !isCritical) {
-      timerBar.classList.add('critical');
-      isCritical = true;
-    } else if (timeLeft > 2 && isCritical) {
-      timerBar.classList.remove('critical');
-      isCritical = false;
-    }
-    
-    if (timeLeft <= 0){
+    if (timeLeft <= 0) {
       stopTimer();
+      if (timerBar) {
+        timerBar.style.width = '0%';
+        timerBar.style.setProperty('background', '#f44336', 'important');
+        timerBar.classList.add('critical');
+      }
       endGame(false, 'Time is up!');
     }
-  },100);
+  }, 100);
 }
 function stopTimer(){
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  // Clear timer interval if running
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
 }
 
 // ---------- Game flow ----------
 function startGame(size, variant){
   acceptingInput = false;
+  
+  // Show loading screen
+  if (loadingScreen) {
+    loadingScreen.classList.remove('hidden');
+  }
+  if (startScreen) {
+    startScreen.classList.add('hidden');
+  }
+  
   let difficultyText = '';
   if (size === 20){ ROWS = 20; COLS = 20; totalTime = 9; difficultyText = 'NORMAL'; } 
   else if (size === 30) { ROWS = 30; COLS = 30; totalTime = 13; difficultyText = 'HARD'; }
@@ -439,14 +491,14 @@ function startGame(size, variant){
   // Compute responsive cell size so large grids (40x40 / 50x50) fit on common screens (e.g., 1920×1080)
   // Leave room for UI (msg/timer). Use available viewport area heuristics.
   // For harder difficulties, use more screen space and larger cells
-  const isHardDifficulty = size >= 40;
+  const isHardDifficulty = size >= 30; // Hard (30x30) and above
   const isExtremeOrHigher = size >= 40; // Extreme, Insane, Ultra Extreme
   
-  // Use more screen space for extreme difficulties
-  const widthMultiplier = isExtremeOrHigher ? 0.92 : (isHardDifficulty ? 0.85 : 0.74);
-  const heightMultiplier = isExtremeOrHigher ? 0.82 : (isHardDifficulty ? 0.75 : 0.66);
-  const maxWidth = isExtremeOrHigher ? 2000 : (isHardDifficulty ? 1800 : 1600);
-  const maxHeight = isExtremeOrHigher ? 1400 : (isHardDifficulty ? 1200 : 1100);
+  // Use more screen space for harder difficulties
+  const widthMultiplier = isExtremeOrHigher ? 0.92 : (isHardDifficulty ? 0.88 : 0.74);
+  const heightMultiplier = isExtremeOrHigher ? 0.82 : (isHardDifficulty ? 0.78 : 0.66);
+  const maxWidth = isExtremeOrHigher ? 2000 : (isHardDifficulty ? 1900 : 1600);
+  const maxHeight = isExtremeOrHigher ? 1400 : (isHardDifficulty ? 1300 : 1100);
   
   const availWidth = Math.min(window.innerWidth * widthMultiplier, maxWidth);
   const availHeight = Math.min(window.innerHeight * heightMultiplier, maxHeight);
@@ -454,26 +506,26 @@ function startGame(size, variant){
   const reservedH = isHardDifficulty ? 180 : 160; // header, message, timer area
   let computedCell = Math.floor(Math.min((availWidth - reservedW) / COLS, (availHeight - reservedH) / ROWS));
   
-  // Clamp cell size to reasonable bounds - larger cells for extreme difficulties
-  const minCell = isExtremeOrHigher ? 14 : (isHardDifficulty ? 12 : 8);
-  const maxCell = isExtremeOrHigher ? 42 : (isHardDifficulty ? 40 : 32);
+  // Clamp cell size to reasonable bounds - larger cells for harder difficulties
+  const minCell = isExtremeOrHigher ? 12 : (isHardDifficulty ? 16 : 8);
+  const maxCell = isExtremeOrHigher ? 35 : (isHardDifficulty ? 45 : 32);
   computedCell = Math.max(minCell, Math.min(maxCell, computedCell));
   
   // For extreme difficulties, ensure minimum visibility by boosting cell size if too small
-  if (isExtremeOrHigher && computedCell < 16) {
-    computedCell = Math.max(16, computedCell);
+  if (isExtremeOrHigher && computedCell < 14) {
+    computedCell = Math.max(14, computedCell);
   }
   
-  // For hard difficulty only, boost cell size slightly
-  if (isHardDifficulty && !isExtremeOrHigher && computedCell < 14) {
-    computedCell = Math.max(14, computedCell);
+  // For hard difficulty (30x30), boost cell size for better visibility
+  if (isHardDifficulty && !isExtremeOrHigher && computedCell < 18) {
+    computedCell = Math.max(18, computedCell);
   }
   
   document.documentElement.style.setProperty('--cell-size', computedCell + 'px');
   if (board) {
-    // Adjust gap based on cell size - larger gaps for extreme difficulties
+    // Adjust gap based on cell size - smaller gaps for extreme difficulties to fit more cells
     if (isExtremeOrHigher) {
-      board.style.gap = (computedCell >= 20 ? '4px' : (computedCell >= 16 ? '3px' : '2px'));
+      board.style.gap = (computedCell >= 18 ? '2px' : '1px');
     } else {
       board.style.gap = (computedCell >= 18 ? '3px' : '1px');
     }
@@ -485,39 +537,42 @@ function startGame(size, variant){
     }
   }
 
-  buildBoard(ROWS, COLS);
-  path = generatePath(ROWS, COLS);
-
-  // ensure we have at least 1 element
-  if (!path || path.length === 0){
-    // fallback simple straight path
-    path = [];
-    let r = ROWS - 1; 
-    let c = Math.floor(COLS/2);
-    while (r >= 0){ path.push({r,c}); r--; }
-  }
-
-  // create occupiedSet from path
-  occupiedSet = new Set(path.map(p => keyFor(p.r, p.c)));
-
-  // place player at first path cell (bottom)
-  player = { r: path[0].r, c: path[0].c };
-  paintAll();
-
-  startScreen.classList.add('hidden');
-  gameScreen.classList.remove('hidden');
-
-  // Show start instruction centered for 5 seconds, then begin timer and accept input
-  msg.textContent = 'Follow the path to the top';
-  msg.className = 'game-message instruction';
-  acceptingInput = false;
+  // Wait 3 seconds for loading screen, then build and start game
   setTimeout(() => {
-    // clear the message (keep it briefly empty) and start
+    buildBoard(ROWS, COLS);
+    path = generatePath(ROWS, COLS);
+
+    // ensure we have at least 1 element
+    if (!path || path.length === 0){
+      // fallback simple straight path
+      path = [];
+      let r = ROWS - 1; 
+      let c = Math.floor(COLS/2);
+      while (r >= 0){ path.push({r,c}); r--; }
+    }
+
+    // create occupiedSet from path
+    occupiedSet = new Set(path.map(p => keyFor(p.r, p.c)));
+
+    // place player at first path cell (bottom)
+    player = { r: path[0].r, c: path[0].c };
+    paintAll();
+
+    // Hide loading screen and show game screen
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+    }
+    if (startScreen) {
+      startScreen.classList.add('hidden');
+    }
+    gameScreen.classList.remove('hidden');
+
+    // Start timer immediately and accept input
     msg.textContent = '';
     msg.className = '';
     startTimer(totalTime);
     acceptingInput = true;
-  }, 5000);
+  }, 3000);
 }
 
 
@@ -531,48 +586,55 @@ function endGame(success, text){
     msg.className = 'game-message hack-success';
     msg.style.display = 'block';
     msg.style.opacity = '1';
+    
+    // Show success message for 5 seconds before returning to menu
+    const waitTime = 5000;
+    setTimeout(() => {
+      msg.className = '';
+      msg.style.opacity = '0';
+      msg.style.display = 'none';
+      gameScreen.classList.add('hidden');
+      startScreen.classList.remove('hidden');
+    }, waitTime);
   } else {
-    msg.innerHTML = '<span class="logo">❌</span> HACK FAILED';
-    msg.className = 'game-message hack-failed';
-    msg.style.display = 'block';
-    msg.style.opacity = '1';
-  }
-
-  // Add small glitch/flicker at the end
-  if (timerBar) timerBar.classList.remove('flicker');
-
-  // Always show end message for 5 seconds before returning to menu
-  const waitTime = 5000;
-  setTimeout(() => {
+    // On failure, just return to menu immediately without showing message
     msg.className = '';
     msg.style.opacity = '0';
     msg.style.display = 'none';
     gameScreen.classList.add('hidden');
     startScreen.classList.remove('hidden');
-  }, waitTime);
+  }
+
 }
 
 function restartSame(){
   if (!startScreen.classList.contains('hidden')){
     return;
   }
-  stopTimer();
-  buildBoard(ROWS, COLS);
-  path = generatePath(ROWS, COLS);
-  occupiedSet = new Set(path.map(p => keyFor(p.r, p.c)));
-  player = { r: path[0].r, c: path[0].c };
-  paintAll();
-
-  // Show instruction for 5s before resuming
-  msg.textContent = 'Follow the path to the top';
-  msg.className = 'game-message instruction';
+  
+  // Show loading screen for 3 seconds
+  if (loadingScreen) {
+    loadingScreen.classList.remove('hidden');
+  }
   acceptingInput = false;
+  stopTimer();
+  
   setTimeout(() => {
+    buildBoard(ROWS, COLS);
+    path = generatePath(ROWS, COLS);
+    occupiedSet = new Set(path.map(p => keyFor(p.r, p.c)));
+    player = { r: path[0].r, c: path[0].c };
+    paintAll();
+
+    // Hide loading screen and start game immediately
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+    }
     msg.textContent = '';
     msg.className = '';
     startTimer(totalTime);
     acceptingInput = true;
-  }, 5000);
+  }, 3000);
 }
 
 
@@ -634,6 +696,9 @@ function onKey(e) {
 
   if (!onPath) {
     timeLeft = Math.max(0, timeLeft - 1);
+    
+    // Update timer bar immediately after penalty (reference project logic)
+    updateTimeBar();
 
     // Target wrong cell (where player tried to move)
     const wrongCell = board.querySelector(`.cell[data-r='${nr}'][data-c='${nc}']`);
@@ -652,7 +717,10 @@ function onKey(e) {
       msg.className = 'game-message instruction';
     }, 800);
 
-    if (timeLeft <= 0) endGame(false, 'Out of time (penalty)');
+    if (timeLeft <= 0) {
+      stopTimer();
+      endGame(false, 'Out of time (penalty)');
+    }
     return;
   }
 

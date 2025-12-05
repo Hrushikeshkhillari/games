@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Path Challenge - Professional Edition</title>
+  <title>Path Challenge</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -80,6 +80,31 @@
       
       <div class="instructions">
         <p class="instruction-text">Use <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or <kbd>↑</kbd> <kbd>←</kbd> <kbd>↓</kbd> <kbd>→</kbd> keys to move</p>
+        <p class="fullscreen-warning">⚠️ For better experience, use fullscreen mode</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen hidden">
+    <div class="loading-content">
+      <div class="loading-dots-circle">
+        <div class="dot dot-1"></div>
+        <div class="dot dot-2"></div>
+        <div class="dot dot-3"></div>
+        <div class="dot dot-4"></div>
+        <div class="dot dot-5"></div>
+        <div class="dot dot-6"></div>
+        <div class="dot dot-7"></div>
+        <div class="dot dot-8"></div>
+        <div class="dot dot-9"></div>
+        <div class="dot dot-10"></div>
+        <div class="dot dot-11"></div>
+        <div class="dot dot-12"></div>
+        <div class="dot dot-13"></div>
+        <div class="dot dot-14"></div>
+        <div class="dot dot-15"></div>
+        <div class="dot dot-16"></div>
       </div>
     </div>
   </div>
@@ -108,7 +133,14 @@
 
     <!-- Game Board -->
     <div id="board-wrap" class="board-container">
-      <div id="board" aria-hidden="false"></div>
+      <div id="board" aria-hidden="false">
+        <!-- Timer -->
+        <div id="timer-wrap" class="timer-container">
+          <div class="timer-bar-wrapper">
+            <div id="timer-bar" class="timer-bar"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Controls Display -->
@@ -133,17 +165,6 @@
             <kbd id="key-arrow-right" class="control-key">→</kbd>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Timer -->
-    <div id="timer-wrap" class="timer-container">
-      <div class="timer-label">
-        <span class="timer-icon">⏱️</span>
-        <span class="timer-text">Time Remaining</span>
-      </div>
-      <div class="timer-bar-wrapper">
-        <div id="timer-bar" class="timer-bar"></div>
       </div>
     </div>
   </section>
